@@ -45,7 +45,7 @@ def unwrap(input_xtc,input_gro,input_tpr):
  
  
 ### Mean Squared Displacement
-def msd(input_gro,input_xtc)
+def msd(input_gro,input_xtc):
 
     def _run_overall(trj, mol):
         D, MSD, x_fit, y_fit = calc_msd(trj)
