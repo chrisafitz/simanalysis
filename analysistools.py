@@ -12,106 +12,108 @@ import unyt as u
 
 
 ### Unwrapping
+def unwrap(input_xtc,input_gro,input_tpr):
 
-xtc_file = ('sample.xtc')
-gro_file = ('system.gro')
-tpr_file = ('sample.tpr')
-if os.path.isfile(xtc_file) and os.path.isfile(gro_file):
-    os.system('echo 0 | gmx trjconv -f {0} -o {1} -s {2} -skip 10 -pbc nojump'.format(xtc_file, 'sample_unwrapped.xtc', tpr_file))
-    unwrapped_trj = ('sample_unwrapped.xtc')
+    xtc_file = (input_xtc)
+    gro_file = (input_gro)
+    tpr_file = (input_tpr)
+    if os.path.isfile(xtc_file) and os.path.isfile(gro_file):
+        os.system('echo 0 | gmx trjconv -f {0} -o {1} -s {2} -skip 10 -pbc nojump'.format(xtc_file, 'sample_unwrapped.xtc', tpr_file))
+        unwrapped_trj = ('sample_unwrapped.xtc')
     
-    #com_trj = ( 'sample_com.xtc')
-    #unwrapped_com_trj = ('sample_com_unwrapped.xtc')
+        #com_trj = ( 'sample_com.xtc')
+        #unwrapped_com_trj = ('sample_com_unwrapped.xtc')
     
-    os.system('echo 0 | gmx trjconv -f {0} -o {1} -s {2} -skip 10 -pbc res'.format(xtc_file, 'sample_res.xtc', tpr_file))
-    res_trj = ('sample_res.xtc')
-    trj = md.load(res_trj, top=gro_file)
-    trj = md.load(unwrapped_trj, top=gro_file)
-    comtrj = make_comtrj(trj)
-    comtrj.save_xtc('sample_com_unwrapped.xtc')
-    comtrj[-1].save_gro('com.gro')
-    print('make whole')
+        os.system('echo 0 | gmx trjconv -f {0} -o {1} -s {2} -skip 10 -pbc res'.format(xtc_file, 'sample_res.xtc', tpr_file))
+        res_trj = ('sample_res.xtc')
+        trj = md.load(res_trj, top=gro_file)
+        trj = md.load(unwrapped_trj, top=gro_file)
+        comtrj = make_comtrj(trj)
+        comtrj.save_xtc('sample_com_unwrapped.xtc')
+        comtrj[-1].save_gro('com.gro')
+        print('make whole')
     
-    #whole_trj =  ('sample_whole.xtc')
-    #whole_com_trj = ('sample_com_whole.xtc')
+        #whole_trj =  ('sample_whole.xtc')
+        #whole_com_trj = ('sample_com_whole.xtc')
     
-    os.system('echo 0 | gmx trjconv -f {0} -o {1} -s {2} -skip 10 -pbc whole'.format(xtc_file,'sample_whole.xtc', gro_file))
-    whole_trj =  ('sample_whole.xtc')
-    trj_whole = md.load(whole_trj, top=gro_file)
-    trj_whole_com = make_comtrj(trj_whole)
-    print('saving')
-    trj_whole_com.save_xtc('sample_com_whole.xtc')
+        os.system('echo 0 | gmx trjconv -f {0} -o {1} -s {2} -skip 10 -pbc whole'.format(xtc_file,'sample_whole.xtc', gro_file))
+        whole_trj =  ('sample_whole.xtc')
+        trj_whole = md.load(whole_trj, top=gro_file)
+        trj_whole_com = make_comtrj(trj_whole)
+        print('saving')
+        trj_whole_com.save_xtc('sample_com_whole.xtc')
  
  
 ### Mean Squared Displacement
+def msd(input_gro,input_xtc)
 
-def _run_overall(trj, mol):
-    D, MSD, x_fit, y_fit = calc_msd(trj)
-    return D, MSD
+    def _run_overall(trj, mol):
+        D, MSD, x_fit, y_fit = calc_msd(trj)
+        return D, MSD
 
-def _save_overall( mol, trj, MSD):
-    name = "Christopher_2022"
-    np.savetxt( 'msd-{}-overall-{}.txt'.format(mol, name),np.transpose(np.vstack([trj.time, MSD])),header='# Time (ps)\tMSD (nm^2)')
-    tempe = 298 #write the temperature
-    res = stats.linregress(trj.time, MSD)
-    fig, ax = plt.subplots()
-    ax.plot(trj.time, MSD)
-    ax.plot(trj.time, res.intercept + res.slope*(trj.time), 'r', alpha=0.3, linewidth= 0.8)
-    slope = '{:.2e}'.format(res.slope)
-    dif_c = '{:.2e}'.format((res.slope)*(1/(1*(10**18)))*(1/6)*(1*(10**12)))
-    ax.text(((max(trj.time)/6)*1.5), (max(MSD)/5)*4.5,"Slope: {} nm^2/ps \n Diffussion coef: {} m^2/s \n T:{}K \n ".format(slope,dif_c, tempe) , horizontalalignment='center', verticalalignment = 'center',bbox=dict(facecolor='orange', alpha=0.2))
-    ax.set_xlabel('Simulation time (ps)')
-    ax.set_ylabel('MSD (nm^2)')
-    fig.savefig('msd-{}-overall-{}.pdf'.format(mol,name))
+    def _save_overall( mol, trj, MSD):
+        name = "Christopher_2022"
+        np.savetxt( 'msd-{}-overall-{}.txt'.format(mol, name),np.transpose(np.vstack([trj.time, MSD])),header='# Time (ps)\tMSD (nm^2)')
+        tempe = 298 #write the temperature
+        res = stats.linregress(trj.time, MSD)
+        fig, ax = plt.subplots()
+        ax.plot(trj.time, MSD)
+        ax.plot(trj.time, res.intercept + res.slope*(trj.time), 'r', alpha=0.3, linewidth= 0.8)
+        slope = '{:.2e}'.format(res.slope)
+        dif_c = '{:.2e}'.format((res.slope)*(1/(1*(10**18)))*(1/6)*(1*(10**12)))
+        ax.text(((max(trj.time)/6)*1.5), (max(MSD)/5)*4.5,"Slope: {} nm^2/ps \n Diffussion coef: {} m^2/s \n T:{}K \n ".format(slope,dif_c, tempe) , horizontalalignment='center', verticalalignment = 'center',bbox=dict(facecolor='orange', alpha=0.2))
+        ax.set_xlabel('Simulation time (ps)')
+        ax.set_ylabel('MSD (nm^2)')
+        fig.savefig('msd-{}-overall-{}.pdf'.format(mol,name))
     
-def _run_multiple(trj):
-    D_pop = list()
-    num_frame = trj.n_frames
-    chunk = 5000
-    for start_frame in np.linspace(0, num_frame - chunk, num = 200, dtype=int):
-        end_frame = start_frame + chunk
-        sliced_trj = trj[start_frame:end_frame]
-        D_pop.append(calc_msd(sliced_trj)[0])
-        D_avg = np.mean(D_pop)
-        D_std = np.std(D_pop)
-    return D_avg, D_std
+    def _run_multiple(trj):
+        D_pop = list()
+        num_frame = trj.n_frames
+        chunk = 5000
+        for start_frame in np.linspace(0, num_frame - chunk, num = 200, dtype=int):
+            end_frame = start_frame + chunk
+            sliced_trj = trj[start_frame:end_frame]
+            D_pop.append(calc_msd(sliced_trj)[0])
+            D_avg = np.mean(D_pop)
+            D_std = np.std(D_pop)
+        return D_avg, D_std
 
 
-print('Loading trj ')
-top_file = ('com.gro')
-trj_file = ('sample_com_unwrapped.xtc')
-trj = md.load(trj_file, top=top_file)
-#first_frame = trj[0]
-temp = 298 #"write temperature" as number  298
+    print('Loading trj ')
+    top_file = ('com.gro')
+    trj_file = ('sample_com_unwrapped.xtc')
+    trj = md.load(trj_file, top=top_file)
+    #first_frame = trj[0]
+    temp = 298 #"write temperature" as number  298
 
-#in selections you need to write the name of your resiudes for example: tfsi and li
-# what the code does, it makes a "new trajectory only with the molecule you are interested"
-selections = {
-                    'li': trj.top.select("resname li"),
-                    'tfsi' :trj.top.select("resname tfsi"),
-                    'wat': trj.top.select("resname wat and name O")
-                    }
+    #in selections you need to write the name of your resiudes for example: tfsi and li
+    # what the code does, it makes a "new trajectory only with the molecule you are interested"
+    selections = {
+                        'li': trj.top.select("resname li"),
+                        'tfsi' :trj.top.select("resname tfsi"),
+                        'wat': trj.top.select("resname wat and name O")
+                        }
 
 
-for mol, indices in selections.items():
-    print('\tConsidering {}'.format(mol))
-    if indices.size == 0:
-        print('{} does not exist in this statepoint'.format(mol))
-        continue
-    print(mol)
-    sliced = trj.atom_slice(indices)
-    print("Sliced selection in pore!")
-    D, MSD = _run_overall(sliced, mol)
-    _save_overall( mol, sliced, MSD)
-    ###
+    for mol, indices in selections.items():
+        print('\tConsidering {}'.format(mol))
+        if indices.size == 0:
+            print('{} does not exist in this statepoint'.format(mol))
+            continue
+        print(mol)
+        sliced = trj.atom_slice(indices)
+        print("Sliced selection in pore!")
+        D, MSD = _run_overall(sliced, mol)
+        _save_overall( mol, sliced, MSD)
+        ###
        
        
 ### Radial Distribution Function
 
 print('Loading trj ')
-top_file = ('system.gro')
-trj_file = ('sample.xtc')
-trj = md.load(trj_file, top=top_file, stride =10000)
+top_file = (input_gro)
+trj_file = (input_xtc)
+trj = md.load(trj_file, top=top_file, stride = stride)
 print(trj.n_frames)
 #first_frame = trj[0]
 temp = 298 #"write temperature" as number  298
