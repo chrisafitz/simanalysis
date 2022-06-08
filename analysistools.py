@@ -9,6 +9,7 @@ from mtools.gromacs.gromacs import unwrap_trj
 from mtools.post_process import calc_msd
 from mtools.post_process import compute_cn
 import unyt as u
+import scipy as stats
 
 
 ### Unwrapping
