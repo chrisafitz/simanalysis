@@ -80,8 +80,8 @@ def msd(input_gro,input_xtc):
 
 
     print('Loading trj ')
-    top_file = ('com.gro')
-    trj_file = ('sample_com_unwrapped.xtc')
+    top_file = (input_gro)
+    trj_file = (input_xtc)
     trj = md.load(trj_file, top=top_file)
     #first_frame = trj[0]
     temp = 298 #"write temperature" as number  298
@@ -91,7 +91,7 @@ def msd(input_gro,input_xtc):
     selections = {
                         'li': trj.top.select("resname li"),
                         'tfsi' :trj.top.select("resname tfsi"),
-                        'wat': trj.top.select("resname wat and name O")
+                        'wat': trj.top.select("resname wat")
                         }
 
 
@@ -109,88 +109,99 @@ def msd(input_gro,input_xtc):
        
        
 ### Radial Distribution Function
+def rdf(input_gro, input_xtc, stride=1)
+    
+    print('Loading trj ')
+    top_file = (input_gro)
+    trj_file = (input_xtc)
+    trj = md.load(trj_file, top=top_file, stride = stride)
+    print(trj.n_frames)
+    #first_frame = trj[0]
+    temp = 298 #"write temperature" as number  298
 
-print('Loading trj ')
-top_file = (input_gro)
-trj_file = (input_xtc)
-trj = md.load(trj_file, top=top_file, stride = stride)
-print(trj.n_frames)
-#first_frame = trj[0]
-temp = 298 #"write temperature" as number  298
+    selections = dict()
+    selections['cation'] = ('name li')
+    selections['anion'] = ('anion')
+    selections['acn'] = ('resname ch3cn')
+    selections['chlor'] = ('resname chlor')
+    selections['all'] = ('all')
 
-selections = dict()
-selections['cation'] = ('name li')
-selections['anion'] = ('anion')
-selections['acn'] = ('resname ch3cn')
-selections['chlor'] = ('resname chlor')
-selections['all'] = ('all')
+    selections['watO'] = trj.topology.select('name O')
+    selections['watH'] = trj.topology.select('name H')
 
-selections['watO'] = trj.topology.select('name O')
-selections['watH'] = trj.topology.select('name H')
-
-combos = ['watO', 'watH']
+    combos = ['watO', 'watH']
 
 
-'''
-for combo in combos:
-    fig, ax = plt.subplots()
+    '''
+    combos = [('cation', 'anion'),
+                      ('cation','cation'),
+                      ('anion','anion'),
+                      ('acn','anion'),
+                      ('acn','cation'),
+                      ('chlor','anion'),
+                      ('chlor','cation'),
+                      ('acn', 'chlor')]
+
+    for combo in combos:
+        fig, ax = plt.subplots()
+        print('running rdf between {0} ({1}) and\t{2} ({3})\t...'.format(combos[0],
+                                                                        len(selections[combos[1]]),
+                                                                        combos[1],
+                                                                        len(selections[combos[1]])))
+        print(selections[combo])
+        r,gr = md.compute_rdf(trj,pairs=trj.topology.select_pairs(selections[combo], selections[combo]))
+
+        plt.plot(r,gr)
+        plt.savefig('rdf picture test.pdf')
+
+        print('done')
+
+    '''
+
+    fig,ax = plt.subplots()
     print('running rdf between {0} ({1}) and\t{2} ({3})\t...'.format(combos[0],
-                                                                    len(selections[combos[1]]),
-                                                                    combos[1],
-                                                                    len(selections[combos[1]])))
-    print(selections[combo])
-    r,gr = md.compute_rdf(trj,pairs=trj.topology.select_pairs(selections[combo], selections[combo]))
+                                                                        len(selections[combos[0]]),
+                                                                        combos[1],
+                                                                        len(selections[combos[1]])))
 
+    comb0 = selections[combos[0]].tolist()
+    comb1 = selections[combos[1]].tolist()
+    r,gr = md.compute_rdf(trj,pairs=trj.topology.select_pairs(comb0,comb1))
     plt.plot(r,gr)
-    plt.savefig('rdf picture test.pdf')
-
+    plt.savefig('rdf_plot.pdf')
     print('done')
-
-'''
-
-fig,ax = plt.subplots()
-print('running rdf between {0} ({1}) and\t{2} ({3})\t...'.format(combos[0],
-                                                                    len(selections[combos[0]]),
-                                                                    combos[1],
-                                                                    len(selections[combos[1]])))
-
-comb0 = selections[combos[0]].tolist()
-comb1 = selections[combos[1]].tolist()
-r,gr = md.compute_rdf(trj,pairs=trj.topology.select_pairs(comb0,comb1))
-plt.plot(r,gr)
-plt.savefig('rdf picture test.pdf')
-print('done')
 
 
 ### Nernst-Einstein Conductivity
+def neconductivity(input_gro,input_xtc,stride=100)
 
-top_file = ('com.gro')
-trj_file = ('sample_com_unwrapped.xtc')
-trj = md.load(trj_file, top=top_file, stride =10000)
-ion = trj.topology.select('resname wat')
-
-
-
-
-D_cat = 2.61e-09
-D_an = 2.61e-09
-T = 298
-q = 0
-N = len(ion)
-V = 125e-27 # m^3
+    top_file = ('com.gro')
+    trj_file = ('sample_com_unwrapped.xtc')
+    trj = md.load(trj_file, top=top_file, stride =10000)
+    ion = trj.topology.select('resname wat')
 
 
 
-D_cat *= u.m**2 / u.s
-D_an *= u.m**2 / u.s
-kT = T * 1.3806488e-23 * u.joule
-q *= u.elementary_charge
-q = q.to('Coulomb')
-V *= u.m**3
 
-cond = N / (V*kT) * q ** 2 * (D_cat + D_an)
+    D_cat = 2.61e-09
+    D_an = 2.61e-09
+    T = 298
+    q = 0
+    N = len(ion)
+    V = 125e-27 # m^3
 
-print("         The Nernst-Einstein conductivity is: "+ str(cond))
+
+
+    D_cat *= u.m**2 / u.s
+    D_an *= u.m**2 / u.s
+    kT = T * 1.3806488e-23 * u.joule
+    q *= u.elementary_charge
+    q = q.to('Coulomb')
+    V *= u.m**3
+
+    cond = N / (V*kT) * q ** 2 * (D_cat + D_an)
+
+    print("         The Nernst-Einstein conductivity is: "+ str(cond))
 
 
 
