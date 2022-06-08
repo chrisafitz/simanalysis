@@ -178,7 +178,7 @@ def neconductivity(input_gro,input_xtc,stride=100)
 
     top_file = ('com.gro')
     trj_file = ('sample_com_unwrapped.xtc')
-    trj = md.load(trj_file, top=top_file, stride =10000)
+    trj = md.load(trj_file, top=top_file, stride = stride)
     ion = trj.topology.select('resname wat')
 
 
