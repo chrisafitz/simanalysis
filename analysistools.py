@@ -91,8 +91,10 @@ def msd(input_gro,input_xtc):
     # what the code does, it makes a "new trajectory only with the molecule you are interested"
     selections = {
                         'li': trj.top.select("resname li"),
-                        'tfsi' :trj.top.select("resname tfsi"),
-                        'wat': trj.top.select("resname wat")
+                        'tfsi': trj.top.select("resname tfsi"),
+                        'wat': trj.top.select("resname wat"),
+                        'emim': trj.top.select("resname emim"),
+                        'bmim': trj.top.select("resname bmim")
                         }
 
 
